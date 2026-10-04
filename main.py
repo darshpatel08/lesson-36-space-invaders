@@ -1,3 +1,4 @@
+from array import array
 import math
 import random
 import pygame
@@ -20,6 +21,20 @@ background = pygame.image.load('space.png')
 pygame.display.set_caption("space invaders")
 icon = pygame.image.load('ufo.png')
 pygame.display.set_icon(icon)
+
+# Hit sound
+def create_hit_sound():
+    sample_rate, _, channels = pygame.mixer.get_init()
+    samples = array('h')
+    for note in (659, 784):
+        note_length = int(sample_rate * 0.12)
+        for i in range(note_length):
+            envelope = min(1, i / (sample_rate * 0.01), (note_length - i) / (sample_rate * 0.02))
+            sample = int(12000 * math.sin(2 * math.pi * note * i / sample_rate) * envelope)
+            samples.extend([sample] * channels)
+    return pygame.mixer.Sound(buffer=samples.tobytes())
+
+hit_sound = create_hit_sound()
 
 # Player Setup
 playerImg = pygame.image.load('player.png')
@@ -125,6 +140,7 @@ while running:
             bulletY = PSY
             bullet_state = "ready"
             score_value += 1  # Fixed: now properly adds to score
+            hit_sound.play()
             enemyX[i] = random.randint(0, SW - 64)
             enemyY[i] = random.randint(ESYMIN, ESYMAX)
             
@@ -143,5 +159,4 @@ while running:
     player(playerX, playerY)
     show_score(textX, textY)
     pygame.display.update()
-
 
